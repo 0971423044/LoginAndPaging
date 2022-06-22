@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:ath="http://www.w3.org/1999/html"
+               xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5" >
+<head>
+    <meta charset="UTF-8">
+    <title>Product Manager</title>
+    <style>
+        a{
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div align="center">
+<!--        <h3 th:inline="text">Welcome [[${#httpServletRequest.remoteUser}]]</h3>-->
+        <div sec:authorize="isAuthenticated()">
+            Welcome <b><span sec:authentication="name">Username</span></b>
+            &nbsp;
+            <span sec:authentication="principal.authorities">Roles</span>
+        </div>
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" value="Logout">
+        </form>
+        <div><h2>Product List</h2>
+            <div sec:authorize="hasAnyRole('ROLE_EDITOR','ROLE_ADMIN')" >
+                <a href="/new" >Create New product</a>
+            </div>
+
+        </div>
+        <br/>
+        <div>
+            <form th:action="@{/page/1}">
+                <input type="hidden" name="sortField" th:value="${sortField}" />
+                <input type="hidden" name="sortDir" th:value="${sortDir}" />
+                Filter:
+                <input type="text" name="keyword" th:value="${keyword}" required placeholder="please enter your word..." />
+                &nbsp;
+                <input type="submit" value="Search"/>
+                &nbsp;
+                <input type="button" value="Clear"/>
+            </form>
+        </div>
+        <br/>
+        <div>
+            <table border="1" style="line-height: 2">
+                <thead>
+                    <tr>
+                        <th>
+                            <a th:href="@{'/page/' + ${currentPage} + '?sortField=id&sortDir=' + ${reverseSortDir}+ ${keyword != null?'&keyword='+keyword:''}}">Product ID</a>
+                        </th>
+                        <th>
+                            <a th:href="@{'/page/' + ${currentPage} + '?sortField=name&sortDir=' + ${reverseSortDir} + ${keyword != null?'&keyword='+keyword:''}}">Name</a>
+                        </th>
+                        <th>
+                            <a th:href="@{'/page/' + ${currentPage} + '?sortField=brand&sortDir=' + ${reverseSortDir} + ${keyword != null?'&keyword='+keyword:''}}">Brand</a>
+                        </th>
+                        <th>Made In</th>
+                        <th>Price</th>
+                        <th sec:authorize="hasRole('ROLE_ADMIN')">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="product : ${listProducts}">
+                        <td th:text="${product.id}"></td>
+                        <td th:text="${product.name}"></td>
+                        <td th:text="${product.brand}"></td>
+                        <td th:text="${product.madein}"></td>
+                        <td th:text="${product.price}"></td>
+                        <td sec:authorize="hasRole('ROLE_ADMIN')">
+                            <a th:href="@{'/edit/'+ ${product.id}}">Edit</a>
+                            &nbsp;&nbsp;&nbsp;
+                            <a th:href="@{'/delete/'+ ${product.id}}">Delete</a>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <br/>
+        <div>
+            Total Items: [[${totalItems}]] - Page [[${currentPage}]] of [[${totalPages}]]
+            &nbsp; - &nbsp;
+
+            <a th:if="${currentPage > 1}" th:href="@{'/page/1?sortField=' + ${sortField} + '&sortDir=' + ${sortDir} + ${keyword != null?'&keyword='+keyword:''}}">First</a>
+            <span th:unless="${currentPage>1}">First</span>
+            &nbsp;
+            <a th:if="${currentPage>1}" th:href="@{'/page/'+${currentPage - 1} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir} + ${keyword != null?'&keyword='+keyword:''}}">Previous</a>
+            <span th:unless="${currentPage>1}">Previous</span>
+
+            <span th:each="i: ${#numbers.sequence(1,totalPages)}">
+                <a th:if="${i != currentPage}" th:href="@{'/page/'+ ${i} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir} + ${keyword != null?'&keyword='+keyword:''}}" style="text-decoration: none">[[${i}]]</a>
+                <span th:unless="${i!=currentPage}">[[${i}]]</span>
+                &nbsp;&nbsp;
+            </span>
+
+            <a th:if="${currentPage<totalPages}" th:href="@{'/page/' + ${currentPage + 1} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir} + ${keyword != null?'&keyword='+keyword:''}}">Next</a>
+            <span th:unless="${currentPage<totalPages}">Next</span>
+            &nbsp;
+            <a th:if="${currentPage<totalPages}" th:href="@{'/page/' + ${totalPages} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir} + ${keyword != null?'&keyword='+keyword:''}}">Last</a>
+            <span th:unless="${currentPage<totalPages}">Last</span>
+
+        </div>
+    </div>
+</body>
+</html>
